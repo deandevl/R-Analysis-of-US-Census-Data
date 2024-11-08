@@ -1,0 +1,35 @@
+project:
+  type: website
+execute:
+  freeze: false
+website:
+  page-navigation: true
+  sidebar:
+    style: floating
+    search: true
+    contents:
+      - index.qmd
+      - 1_introduction.qmd
+      - 2_intro_to_tidyverse.qmd
+      - 3_wrangling_census_data_with_tidyverse_tools.qmd
+      - 4_exploring_census_visualization.qmd
+      - 5_census_geographic_data.qmd
+      - 6_mapping_census_data_with_R.qmd
+      - 7_spatial_analysis_with_census.qmd
+      - 8_modeling_census_data.qmd
+format:
+  html:
+    grid:
+      margin-width: 350px
+    theme:
+      light: cosmo
+      dark: darkly
+    toc: true
+
+editor: visual
+number-sections: false
+date: last-modified
+css: styles.css
+reference-location: margin
+citation-location: margin
+

@@ -1,0 +1,10 @@
+
+# Techniques in Acquisition, Computation, and Display of US Census Bureau Data
+
+## Abstract
+
+This article references the book [Analyzing US Census Data: Methods, Maps, and Models in R](https://walker-data.com/census-r/index.html) by Kyle Walker. The topics in the first 8 chapters presented in the book are followed here. Alternative R packages are used to duplicate each chapter's acquisition and visualization of data from the Census Bureau's API. It is suggested that acquiring survey/geo-spatial data and using [data.table](https://cran.r-project.org/web/packages/data.table/index.html) techniques provides more control and speed over the data wrangling.
+
+::: {.nav-page .nav-page-next}
+<a href="./1_introduction.html" class="pagination-link" aria-label="Introduction"> [Introduction]{.nav-page-text} <i class="bi bi-arrow-right-short"></i> </a>
+:::

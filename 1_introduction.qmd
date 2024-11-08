@@ -1,0 +1,19 @@
+# 1 Introduction
+
+The R package [RcensusPkg](https://github.com/deandevl/RcensusPkg) is illustrated in acquiring US Census Bureau data. Efficient manipulations of this data are presented using the R package [data.table](https://cran.r-project.org/web/packages/data.table/index.html). [RspatialPkg](https://github.com/deandevl/RspatialPkg) combines Census Bureau spatial geographic features with survey data to create ggplot2 based choropleth maps. Also, the R package [RplotterPkg](https://github.com/deandevl/RplotterPkg) is shown to provide an easy interface to both static and interactive ggplot2 plotting such as histograms, bar charts, and scatterplots.
+
+Each section here presents:
+
+<ol>
+
+<li>A short description on what the book is presenting.</li>
+
+<li>A highlighted task statement as to what code should provide.</li>
+
+<li>The actual R code that was used to accomplish the task.</li>
+
+<li>Results in the form of tables and/or plots.</li>
+
+</ol>
+
+The `RcensusPkg`, `RspatialPkg`, and `RplotterPkg` are currently available from GitHub and installed via `devtools::install_github()`.

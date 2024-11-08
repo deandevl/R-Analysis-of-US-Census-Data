@@ -1,0 +1,1431 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.4.551">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="dcterms.date" content="2024-10-24">
+
+<title>wrangling_census_data_with_tidyverse_tools</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<link href="./4_exploring_census_visualization.html" rel="next">
+<link href="./2_intro_to_tidyverse.html" rel="prev">
+<script src="site_libs/quarto-html/quarto.js"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-dark.css" rel="prefetch" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-dark.min.css" rel="prefetch" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<script id="quarto-search-options" type="application/json">{
+  "location": "sidebar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "start",
+  "type": "textbox",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+<link href="site_libs/htmltools-fill-0.5.8.1/fill.css" rel="stylesheet">
+
+<script src="site_libs/htmlwidgets-1.6.4/htmlwidgets.js"></script>
+
+<link href="site_libs/datatables-css-0.0.0/datatables-crosstalk.css" rel="stylesheet">
+
+<script src="site_libs/datatables-binding-0.33/datatables.js"></script>
+
+<script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
+
+<link href="site_libs/dt-core-1.13.6/css/jquery.dataTables.min.css" rel="stylesheet">
+
+<link href="site_libs/dt-core-1.13.6/css/jquery.dataTables.extra.css" rel="stylesheet">
+
+<script src="site_libs/dt-core-1.13.6/js/jquery.dataTables.min.js"></script>
+
+<link href="site_libs/crosstalk-1.2.1/css/crosstalk.min.css" rel="stylesheet">
+
+<script src="site_libs/crosstalk-1.2.1/js/crosstalk.min.js"></script>
+
+
+
+<link rel="stylesheet" href="styles.css">
+</head>
+
+<body class="nav-sidebar floating slimcontent">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./3_wrangling_census_data_with_tidyverse_tools.html">3 Wrangling Census Data with tidyverse tools</a></li></ol></nav>
+        <a class="flex-grow-1" role="button" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+      <button type="button" class="btn quarto-search-button" aria-label="" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+        <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="Search"></div>
+        </div>
+        </div>
+        <div class="sidebar-tools-collapse">
+  <a href="" class="quarto-color-scheme-toggle quarto-navigation-tool  px-1" onclick="window.quartoToggleColorScheme(); return false;" title="Toggle dark mode"><i class="bi"></i></a>
+</div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Techniques in Acquisition, Computation, and Display of US Census Bureau Data</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./1_introduction.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">1 Introduction</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./2_intro_to_tidyverse.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">2 An introduction to tidyverse</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./3_wrangling_census_data_with_tidyverse_tools.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">3 Wrangling Census Data with tidyverse tools</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./4_exploring_census_visualization.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">4 Exploring US Census data with visualization</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./5_census_geographic_data.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">5 Census geographic data and applications in R</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./6_mapping_census_data_with_R.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">6 Mapping Census data with R</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./7_spatial_analysis_with_census.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">7 Spatial analysis with US Census data</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./8_modeling_census_data.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">8 Modeling US Census data</span></a>
+  </div>
+</li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#wrangling-census-data-with-tidyverse-tools" id="toc-wrangling-census-data-with-tidyverse-tools" class="nav-link active" data-scroll-target="#wrangling-census-data-with-tidyverse-tools">3 Wrangling Census Data with tidyverse tools</a>
+  <ul class="collapse">
+  <li><a href="#exploring-census-data-with-tidyverse-tools" id="toc-exploring-census-data-with-tidyverse-tools" class="nav-link" data-scroll-target="#exploring-census-data-with-tidyverse-tools">3.2 Exploring Census data with tidyverse tools</a>
+  <ul class="collapse">
+  <li><a href="#sorting-and-filtering-data" id="toc-sorting-and-filtering-data" class="nav-link" data-scroll-target="#sorting-and-filtering-data">3.2.1 Sorting and filtering data</a></li>
+  <li><a href="#using-summary-variables-and-calculating-new-columns" id="toc-using-summary-variables-and-calculating-new-columns" class="nav-link" data-scroll-target="#using-summary-variables-and-calculating-new-columns">3.2.2 Using summary variables and calculating new columns</a></li>
+  </ul></li>
+  <li><a href="#group-wise-census-data-analysis" id="toc-group-wise-census-data-analysis" class="nav-link" data-scroll-target="#group-wise-census-data-analysis">3.3 Group-wise Census data analysis</a>
+  <ul class="collapse">
+  <li><a href="#making-group-wise-comparisons" id="toc-making-group-wise-comparisons" class="nav-link" data-scroll-target="#making-group-wise-comparisons">3.3.1 Making group-wise comparisons</a></li>
+  <li><a href="#tabulating-new-groups" id="toc-tabulating-new-groups" class="nav-link" data-scroll-target="#tabulating-new-groups">3.3.2 Tabulating new groups</a></li>
+  </ul></li>
+  <li><a href="#comparing-acs-estimates-over-time" id="toc-comparing-acs-estimates-over-time" class="nav-link" data-scroll-target="#comparing-acs-estimates-over-time">3.4 Comparing ACS estimates over time</a>
+  <ul class="collapse">
+  <li><a href="#time-series-analysis-some-cautions" id="toc-time-series-analysis-some-cautions" class="nav-link" data-scroll-target="#time-series-analysis-some-cautions">3.4.1 Time-series analysis: some cautions</a></li>
+  <li><a href="#preparing-time-series-acs-estimates" id="toc-preparing-time-series-acs-estimates" class="nav-link" data-scroll-target="#preparing-time-series-acs-estimates">3.4.2 Preparing time-series ACS estimates</a></li>
+  </ul></li>
+  <li><a href="#handling-margins-of-error-in-the-american-community-survey" id="toc-handling-margins-of-error-in-the-american-community-survey" class="nav-link" data-scroll-target="#handling-margins-of-error-in-the-american-community-survey">3.5 Handling margins of error in the American Community Survey</a></li>
+  </ul></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content page-columns page-full" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">October 24, 2024</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="wrangling-census-data-with-tidyverse-tools" class="level1 page-columns page-full">
+<h1>3 Wrangling Census Data with tidyverse tools</h1>
+<div class="task">
+<p>Load the Required R Packages from CRAN:</p>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(usmap)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(data.table)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(DT)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(stringr)</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(purrr)</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(magrittr)</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(devtools)</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="fu">options</span>(<span class="at">DT.options =</span> <span class="fu">list</span>(<span class="at">dom =</span> <span class="st">'t'</span>, <span class="at">style =</span> <span class="st">'bootstrap'</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="task">
+<p>Load the package ‘deandevl/RcensusPkg’.</p>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>devtools<span class="sc">::</span><span class="fu">install_github</span>(<span class="st">'deandevl/RcensusPkg'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<section id="exploring-census-data-with-tidyverse-tools" class="level2">
+<h2 class="anchored" data-anchor-id="exploring-census-data-with-tidyverse-tools">3.2 Exploring Census data with tidyverse tools</h2>
+<p>From the <code>RcensusPkg::</code> package we will be utilizing the following functions to obtain Census Bureau data:</p>
+<ul>
+<li><p><code>RcensusPkg::get_vintage_data()</code> Get Census Bureau data for a specific data set, variables, and region in the form of a data.table.</p></li>
+<li><p><code>RcensusPkg::get_variable_names()</code> Get the variable names of the Census Bureau and their descriptions in the form of a data.table.</p></li>
+<li><p><code>RcensusPkg::get_multi_vintage_data()</code> Get Census Bureau data for a specific data set, variables, and region in the form of a data.table for multiple vintages.</p></li>
+</ul>
+<p>The data wrangling such as sorting, ordering, filtering, mutating, joining, grouping, renaming, variable selection will be accomplished using the many capabilities of the <a href="https://cran.r-project.org/web/packages/data.table/index.html">data.table</a> package.</p>
+<section id="sorting-and-filtering-data" class="level3">
+<h3 class="anchored" data-anchor-id="sorting-and-filtering-data">3.2.1 Sorting and filtering data</h3>
+<div class="task">
+<p>Request the median age from 2016-2020 5-year ACS Survey for all counties in the United States.</p>
+</div>
+<p>Call <code>RcensusPkg::get_vintage_data()</code>:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>county_med_age_dt <span class="ot">&lt;-</span> RcensusPkg<span class="sc">::</span><span class="fu">get_vintage_data</span>(</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">dataset =</span> <span class="st">"acs/acs5"</span>,</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">vintage =</span> <span class="dv">2020</span>,</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">vars =</span> <span class="fu">c</span>(<span class="st">"B01002_001E"</span>, <span class="st">"B01002_001M"</span>),</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">region =</span> <span class="st">"county"</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>) <span class="sc">%&gt;%</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>.[, <span class="st">`</span><span class="at">:=</span><span class="st">`</span>(<span class="at">state =</span> <span class="cn">NULL</span>, <span class="at">county =</span> <span class="cn">NULL</span>)] <span class="sc">%&gt;%</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>data.table<span class="sc">::</span><span class="fu">setnames</span>(., <span class="at">old =</span> <span class="fu">c</span>(<span class="st">"B01002_001E"</span>, <span class="st">"B01002_001M"</span>), <span class="at">new =</span> <span class="fu">c</span>(<span class="st">"estimate"</span>, <span class="st">"moe"</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>.[, variable <span class="sc">:</span><span class="er">=</span> <span class="st">"B01002_001"</span>] <span class="sc">%&gt;%</span></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>.[, .(GEOID, NAME, variable, estimate, moe)]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="cell-output-display">
+<div class="datatables html-widget html-fill-item" id="htmlwidget-dcf5d3f7c86ca82d7142" style="width:100%;height:auto;"></div>
+<script type="application/json" data-for="htmlwidget-dcf5d3f7c86ca82d7142">{"x":{"filter":"none","vertical":false,"caption":"<caption>Table 3.1: Median age for US counties<\/caption>","data":[["1","2","3","4","5","6"],["01001","01003","01005","01007","01009","01011"],["Autauga County, Alabama","Baldwin County, Alabama","Barbour County, Alabama","Bibb County, Alabama","Blount County, Alabama","Bullock County, Alabama"],["B01002_001","B01002_001","B01002_001","B01002_001","B01002_001","B01002_001"],["38.6","43.2","40.1","39.9","41.0","39.7"],["0.6","0.4","0.6","1.2","0.5","1.9"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>GEOID<\/th>\n      <th>NAME<\/th>\n      <th>variable<\/th>\n      <th>estimate<\/th>\n      <th>moe<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"dom":"t","style":"bootstrap","columnDefs":[{"orderable":false,"targets":0},{"name":" ","targets":0},{"name":"GEOID","targets":1},{"name":"NAME","targets":2},{"name":"variable","targets":3},{"name":"estimate","targets":4},{"name":"moe","targets":5}],"order":[],"autoWidth":false,"orderClasses":false},"selection":{"mode":"multiple","selected":null,"target":"row","selectable":null}},"evals":[],"jsHooks":[]}</script>
+</div>
+</div>
+<div class="task">
+<p>Find the youngest to oldest counties in the US.</p>
+</div>
+<p>Order the “estimate” column of <code>county_med_age_dt</code> via ascending direction (the default):</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>county_med_age_young_to_old_dt <span class="ot">&lt;-</span> county_med_age_dt[<span class="fu">order</span>(estimate)]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="cell-output-display">
+<div class="datatables html-widget html-fill-item" id="htmlwidget-73d152316b720ef684cf" style="width:100%;height:auto;"></div>
+<script type="application/json" data-for="htmlwidget-73d152316b720ef684cf">{"x":{"filter":"none","vertical":false,"caption":"<caption>Table 3.2: The youngest counties in the US by median age<\/caption>","data":[["1","2","3","4","5","6"],["51678","35011","16065","46121","51750","13053"],["Lexington city, Virginia","De Baca County, New Mexico","Madison County, Idaho","Todd County, South Dakota","Radford city, Virginia","Chattahoochee County, Georgia"],["B01002_001","B01002_001","B01002_001","B01002_001","B01002_001","B01002_001"],["22.2","22.2","23.5","23.6","23.7","24.0"],["0.8","6.9","0.2","0.6","0.6","0.7"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>GEOID<\/th>\n      <th>NAME<\/th>\n      <th>variable<\/th>\n      <th>estimate<\/th>\n      <th>moe<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"dom":"t","style":"bootstrap","columnDefs":[{"orderable":false,"targets":0},{"name":" ","targets":0},{"name":"GEOID","targets":1},{"name":"NAME","targets":2},{"name":"variable","targets":3},{"name":"estimate","targets":4},{"name":"moe","targets":5}],"order":[],"autoWidth":false,"orderClasses":false},"selection":{"mode":"multiple","selected":null,"target":"row","selectable":null}},"evals":[],"jsHooks":[]}</script>
+</div>
+</div>
+<div class="task">
+<p>Find the oldest to youngest counties in the US.</p>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>county_med_age_old_to_young_dt <span class="ot">&lt;-</span> county_med_age_dt[<span class="fu">order</span>(<span class="sc">-</span>estimate)]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="cell-output-display">
+<div class="datatables html-widget html-fill-item" id="htmlwidget-0fd713eede5453a18bbc" style="width:100%;height:auto;"></div>
+<script type="application/json" data-for="htmlwidget-0fd713eede5453a18bbc">{"x":{"filter":"none","vertical":false,"caption":"<caption>Table 3.3: The oldest counties in the US by median age<\/caption>","data":[["1","2","3","4","5","6"],["12119","48301","48243","08027","12015","51091"],["Sumter County, Florida","Loving County, Texas","Jeff Davis County, Texas","Custer County, Colorado","Charlotte County, Florida","Highland County, Virginia"],["B01002_001","B01002_001","B01002_001","B01002_001","B01002_001","B01002_001"],["68.0","62.2","61.3","60.1","59.5","59.5"],["0.3","37.8","36.8","3.4","0.2","4.8"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>GEOID<\/th>\n      <th>NAME<\/th>\n      <th>variable<\/th>\n      <th>estimate<\/th>\n      <th>moe<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"dom":"t","style":"bootstrap","columnDefs":[{"orderable":false,"targets":0},{"name":" ","targets":0},{"name":"GEOID","targets":1},{"name":"NAME","targets":2},{"name":"variable","targets":3},{"name":"estimate","targets":4},{"name":"moe","targets":5}],"order":[],"autoWidth":false,"orderClasses":false},"selection":{"mode":"multiple","selected":null,"target":"row","selectable":null}},"evals":[],"jsHooks":[]}</script>
+</div>
+</div>
+<div class="task">
+<p>Filter the counties in the US with a median age &gt;= 50.</p>
+</div>
+<p>Use a simple logical expression to filter the data frame <code>county_med_age_dt</code>:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>county_med_age_gte_50_dt <span class="ot">&lt;-</span> county_med_age_dt[estimate <span class="sc">&gt;=</span> <span class="dv">50</span>] <span class="sc">%&gt;%</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>.[<span class="fu">order</span>(GEOID),]  </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="cell-output-display">
+<div class="datatables html-widget html-fill-item" id="htmlwidget-8223bc0d8f36a7508c0e" style="width:100%;height:auto;"></div>
+<script type="application/json" data-for="htmlwidget-8223bc0d8f36a7508c0e">{"x":{"filter":"none","vertical":false,"caption":"<caption>Table 3.4: Counties with a median age of 50 or above<\/caption>","data":[["1","2","3","4","5","6"],["02105","04007","04012","04015","04025","05005"],["Hoonah-Angoon Census Area, Alaska","Gila County, Arizona","La Paz County, Arizona","Mohave County, Arizona","Yavapai County, Arizona","Baxter County, Arkansas"],["B01002_001","B01002_001","B01002_001","B01002_001","B01002_001","B01002_001"],["52.1","50.4","57.4","52.3","54.1","52.3"],["2.9","0.2","0.6","0.2","0.2","0.5"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>GEOID<\/th>\n      <th>NAME<\/th>\n      <th>variable<\/th>\n      <th>estimate<\/th>\n      <th>moe<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"dom":"t","style":"bootstrap","columnDefs":[{"orderable":false,"targets":0},{"name":" ","targets":0},{"name":"GEOID","targets":1},{"name":"NAME","targets":2},{"name":"variable","targets":3},{"name":"estimate","targets":4},{"name":"moe","targets":5}],"order":[],"autoWidth":false,"orderClasses":false},"selection":{"mode":"multiple","selected":null,"target":"row","selectable":null}},"evals":[],"jsHooks":[]}</script>
+</div>
+</div>
+<div class="task">
+<p>Separate the “NAME” column into columns of state and county names.</p>
+</div>
+<p>Use <code>data.table::tstrsplit()</code> to split the “NAME” column and then remove the “NAME” column:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>county_med_age_dt <span class="ot">&lt;-</span> county_med_age_dt[, <span class="fu">c</span>(<span class="st">"county"</span>,<span class="st">"state"</span>) <span class="sc">:</span><span class="er">=</span> <span class="fu">tstrsplit</span>(NAME,<span class="st">","</span>)] <span class="sc">%&gt;%</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  .[, NAME <span class="sc">:</span><span class="er">=</span> <span class="cn">NULL</span>] <span class="sc">%&gt;%</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>.[, .(GEOID, county, state, variable, estimate, moe)]  </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="cell-output-display">
+<div class="datatables html-widget html-fill-item" id="htmlwidget-d477b37634ddae2f213e" style="width:100%;height:auto;"></div>
+<script type="application/json" data-for="htmlwidget-d477b37634ddae2f213e">{"x":{"filter":"none","vertical":false,"caption":"<caption>Table 3.5: Separate columns for county and state<\/caption>","data":[["1","2","3","4","5","6"],["01001","01003","01005","01007","01009","01011"],["Autauga County","Baldwin County","Barbour County","Bibb County","Blount County","Bullock County"],[" Alabama"," Alabama"," Alabama"," Alabama"," Alabama"," Alabama"],["B01002_001","B01002_001","B01002_001","B01002_001","B01002_001","B01002_001"],["38.6","43.2","40.1","39.9","41.0","39.7"],["0.6","0.4","0.6","1.2","0.5","1.9"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>GEOID<\/th>\n      <th>county<\/th>\n      <th>state<\/th>\n      <th>variable<\/th>\n      <th>estimate<\/th>\n      <th>moe<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"dom":"t","style":"bootstrap","columnDefs":[{"orderable":false,"targets":0},{"name":" ","targets":0},{"name":"GEOID","targets":1},{"name":"county","targets":2},{"name":"state","targets":3},{"name":"variable","targets":4},{"name":"estimate","targets":5},{"name":"moe","targets":6}],"order":[],"autoWidth":false,"orderClasses":false},"selection":{"mode":"multiple","selected":null,"target":"row","selectable":null}},"evals":[],"jsHooks":[]}</script>
+</div>
+</div>
+</section>
+<section id="using-summary-variables-and-calculating-new-columns" class="level3">
+<h3 class="anchored" data-anchor-id="using-summary-variables-and-calculating-new-columns">3.2.2 Using summary variables and calculating new columns</h3>
+<div class="task">
+<p>Compare the populations of different races in each county in the state of Arizona by normalizing a set of variables.</p>
+</div>
+<p>Get the total population by race in each county:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>az_fips <span class="ot">&lt;-</span> usmap<span class="sc">::</span><span class="fu">fips</span>(<span class="st">"AZ"</span>)  <span class="co"># Get the fips number for Arizona</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>ar_pop_race_dt <span class="ot">&lt;-</span> RcensusPkg<span class="sc">::</span><span class="fu">get_vintage_data</span>(</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">dataset =</span> <span class="st">"acs/acs5"</span>,</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">vintage =</span> <span class="dv">2020</span>,</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">vars =</span> <span class="fu">c</span>(<span class="st">"B03002_001E"</span>, <span class="st">"B03002_001M"</span>, <span class="st">"B03002_003E"</span>, <span class="st">"B03002_004E"</span>, <span class="st">"B03002_005E"</span>, <span class="st">"B03002_006E"</span>, <span class="st">"B03002_007E"</span>, <span class="st">"B03002_012E"</span>, <span class="st">"B03002_003M"</span>, <span class="st">"B03002_004M"</span>, <span class="st">"B03002_005M"</span>, <span class="st">"B03002_006M"</span>, <span class="st">"B03002_007M"</span>, <span class="st">"B03002_012M"</span>),</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">region =</span> <span class="st">"county:*"</span>,</span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">regionin =</span> <span class="fu">paste0</span>(<span class="st">"state:"</span>, az_fips)</span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>) <span class="sc">%&gt;%</span></span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>.[, <span class="st">`</span><span class="at">:=</span><span class="st">`</span>(<span class="at">state =</span> <span class="cn">NULL</span>, <span class="at">county =</span> <span class="cn">NULL</span>)]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Reshape the estimates and summary to the long form:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>estimate_long_dt <span class="ot">&lt;-</span> RcensusPkg<span class="sc">::</span><span class="fu">wide_to_long</span>(</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">dt =</span> ar_pop_race_dt,</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">measure_v =</span> <span class="fu">c</span>(<span class="st">"B03002_003E"</span>,<span class="st">"B03002_004E"</span>,<span class="st">"B03002_005E"</span>,<span class="st">"B03002_006E"</span>,<span class="st">"B03002_007E"</span>,<span class="st">"B03002_012E"</span>)</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>moe_long_dt <span class="ot">&lt;-</span> RcensusPkg<span class="sc">::</span><span class="fu">wide_to_long</span>(</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">dt =</span> ar_pop_race_dt,</span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">measure_v =</span> <span class="fu">c</span>(<span class="st">"B03002_003M"</span>, <span class="st">"B03002_004M"</span>, <span class="st">"B03002_005M"</span>, <span class="st">"B03002_006M"</span>, <span class="st">"B03002_007M"</span>, <span class="st">"B03002_012M"</span>)</span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>summary_est_dt <span class="ot">&lt;-</span> RcensusPkg<span class="sc">::</span><span class="fu">wide_to_long</span>(</span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">dt =</span> ar_pop_race_dt,</span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">measure_v =</span> <span class="st">"B03002_001E"</span></span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a>summary_moe_dt <span class="ot">&lt;-</span> RcensusPkg<span class="sc">::</span><span class="fu">wide_to_long</span>(</span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a>  <span class="at">dt =</span> ar_pop_race_dt,</span>
+<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a>  <span class="at">measure_v =</span> <span class="st">"B03002_001M"</span></span>
+<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Perform some simple wrangling:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>estimate_long_dt <span class="ot">&lt;-</span> estimate_long_dt <span class="sc">%&gt;%</span> </span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>  .[, estimate <span class="sc">:</span><span class="er">=</span> <span class="fu">as.numeric</span>(estimate)] <span class="sc">%&gt;%</span> </span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>  .[, variable <span class="sc">:</span><span class="er">=</span> <span class="fu">fcase</span>(</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>     variable <span class="sc">==</span> <span class="st">"B03002_003E"</span>,<span class="st">"White"</span>,</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>     variable <span class="sc">==</span> <span class="st">"B03002_004E"</span>,<span class="st">"Black"</span>,</span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>     variable <span class="sc">==</span> <span class="st">"B03002_005E"</span>,<span class="st">"Native"</span>,</span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>     variable <span class="sc">==</span> <span class="st">"B03002_006E"</span>,<span class="st">"Asian"</span>,</span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>     variable <span class="sc">==</span> <span class="st">"B03002_007E"</span>,<span class="st">"HIPI"</span>,</span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>     variable <span class="sc">==</span> <span class="st">"B03002_012E"</span>,<span class="st">"Hispanic"</span>)</span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>  ] <span class="sc">%&gt;%</span> </span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>  .[, moe <span class="sc">:</span><span class="er">=</span> <span class="fu">as.numeric</span>(moe_long_dt<span class="sc">$</span>estimate)] <span class="sc">%&gt;%</span> </span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a>  .[, moe <span class="sc">:</span><span class="er">=</span> <span class="fu">ifelse</span>(moe <span class="sc">==</span> <span class="sc">-</span><span class="dv">555555555</span>,<span class="cn">NA</span>,moe)]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>More wrangling on the summary variables:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>summary_est_dt <span class="ot">&lt;-</span> summary_est_dt <span class="sc">%&gt;%</span> </span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>  .[, summary_est <span class="sc">:</span><span class="er">=</span> <span class="fu">as.numeric</span>(estimate)] <span class="sc">%&gt;%</span> </span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>  .[, .(GEOID, summary_est)]</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>summary_moe_dt <span class="ot">&lt;-</span> summary_moe_dt <span class="sc">%&gt;%</span> </span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>  .[, summary_moe <span class="sc">:</span><span class="er">=</span> <span class="fu">as.numeric</span>(estimate)] <span class="sc">%&gt;%</span> </span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>  .[, summary_moe <span class="sc">:</span><span class="er">=</span> <span class="fu">ifelse</span>(estimate <span class="sc">==</span> <span class="sc">-</span><span class="dv">555555555</span>,<span class="cn">NA</span>,estimate)] <span class="sc">%&gt;%</span> </span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>  .[, .(GEOID, summary_moe)]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Wrap it all up with some joins:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>data.table<span class="sc">::</span><span class="fu">setkeyv</span>(estimate_long_dt, <span class="at">cols =</span> <span class="st">"GEOID"</span>)</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>data.table<span class="sc">::</span><span class="fu">setkeyv</span>(summary_est_dt, <span class="at">cols =</span> <span class="st">"GEOID"</span>)</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>data.table<span class="sc">::</span><span class="fu">setkeyv</span>(summary_moe_dt, <span class="at">cols =</span> <span class="st">"GEOID"</span>)</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>estimate_long_dt <span class="ot">&lt;-</span> estimate_long_dt[summary_est_dt]</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>estimate_long_dt <span class="ot">&lt;-</span> estimate_long_dt[summary_moe_dt]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>DT<span class="sc">::</span><span class="fu">datatable</span>(estimate_long_dt[<span class="dv">1</span><span class="sc">:</span><span class="dv">6</span>,], <span class="at">caption =</span> <span class="st">'Table 3.6: Race and ethnicity in Arizonia'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div class="datatables html-widget html-fill-item" id="htmlwidget-5cc7ac5e18bc86a03222" style="width:100%;height:auto;"></div>
+<script type="application/json" data-for="htmlwidget-5cc7ac5e18bc86a03222">{"x":{"filter":"none","vertical":false,"caption":"<caption>Table 3.6: Race and ethnicity in Arizonia<\/caption>","data":[["1","2","3","4","5","6"],["Apache County, Arizona","Apache County, Arizona","Apache County, Arizona","Apache County, Arizona","Apache County, Arizona","Apache County, Arizona"],["04001","04001","04001","04001","04001","04001"],["White","Black","Native","Asian","HIPI","Hispanic"],[12993,544,51979,262,49,4751],[56,56,327,76,14,null],[71714,71714,71714,71714,71714,71714],[null,null,null,null,null,null]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>NAME<\/th>\n      <th>GEOID<\/th>\n      <th>variable<\/th>\n      <th>estimate<\/th>\n      <th>moe<\/th>\n      <th>summary_est<\/th>\n      <th>summary_moe<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"dom":"t","style":"bootstrap","columnDefs":[{"className":"dt-right","targets":[4,5,6]},{"orderable":false,"targets":0},{"name":" ","targets":0},{"name":"NAME","targets":1},{"name":"GEOID","targets":2},{"name":"variable","targets":3},{"name":"estimate","targets":4},{"name":"moe","targets":5},{"name":"summary_est","targets":6},{"name":"summary_moe","targets":7}],"order":[],"autoWidth":false,"orderClasses":false},"selection":{"mode":"multiple","selected":null,"target":"row","selectable":null}},"evals":[],"jsHooks":[]}</script>
+</div>
+</div>
+<p>Finish by adding a column representing the percentage of each Census tract’s population that cooresponds to each racial/ethnic group in 2016-2020.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>estimate_percent_long_dt <span class="ot">&lt;-</span> estimate_long_dt <span class="sc">%&gt;%</span> </span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>  .[, percent <span class="sc">:</span><span class="er">=</span> <span class="dv">100</span> <span class="sc">*</span> (estimate<span class="sc">/</span>summary_est)] <span class="sc">%&gt;%</span> </span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>  .[, .(NAME, variable, percent)]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="cell-output-display">
+<div class="datatables html-widget html-fill-item" id="htmlwidget-0339c7ab7d51dc69bfb1" style="width:100%;height:auto;"></div>
+<script type="application/json" data-for="htmlwidget-0339c7ab7d51dc69bfb1">{"x":{"filter":"none","vertical":false,"caption":"<caption>Table 3.7: Race and ethnicity in Arizonia as percentages<\/caption>","data":[["1","2","3","4","5","6"],["Apache County, Arizona","Apache County, Arizona","Apache County, Arizona","Apache County, Arizona","Apache County, Arizona","Apache County, Arizona"],["White","Black","Native","Asian","HIPI","Hispanic"],[18.1178012661405,0.7585687592380846,72.48096605962574,0.3653401009565775,0.06832696544607747,6.624926792537023]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>NAME<\/th>\n      <th>variable<\/th>\n      <th>percent<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"dom":"t","style":"bootstrap","columnDefs":[{"className":"dt-right","targets":3},{"orderable":false,"targets":0},{"name":" ","targets":0},{"name":"NAME","targets":1},{"name":"variable","targets":2},{"name":"percent","targets":3}],"order":[],"autoWidth":false,"orderClasses":false},"selection":{"mode":"multiple","selected":null,"target":"row","selectable":null}},"evals":[],"jsHooks":[]}</script>
+</div>
+</div>
+</section>
+</section>
+<section id="group-wise-census-data-analysis" class="level2 page-columns page-full">
+<h2 class="anchored" data-anchor-id="group-wise-census-data-analysis">3.3 Group-wise Census data analysis</h2>
+<section id="making-group-wise-comparisons" class="level3 page-columns page-full">
+<h3 class="anchored" data-anchor-id="making-group-wise-comparisons">3.3.1 Making group-wise comparisons</h3>
+<div class="task">
+<p>Group <code>estimate_percent_long_dt</code> by the “NAME” column (county) and select the largest race percentage from each sub-group.</p>
+</div>
+<p>Define the grouping for <code>estimate_percent_long_dt</code> and filter the “percent” column as the maximum race/ethnic percent for each sub-group:</p>
+<div class="page-columns page-full"><p></p><div class="no-row-height column-margin column-container"><span class="">The “.SD” stands for <strong>S</strong>ubset of <strong>D</strong>ata. It by itself is a <code>data.table</code> that holds the data for the current sub-group defined using <code>by</code>.</span></div></div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>estimate_percent_grouped_dt <span class="ot">&lt;-</span> estimate_percent_long_dt[, .SD[percent <span class="sc">==</span> <span class="fu">max</span>(percent)], by <span class="ot">=</span> NAME]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="cell-output-display">
+<div class="datatables html-widget html-fill-item" id="htmlwidget-ce13bc6811ccfa3a5c55" style="width:100%;height:auto;"></div>
+<script type="application/json" data-for="htmlwidget-ce13bc6811ccfa3a5c55">{"x":{"filter":"none","vertical":false,"caption":"<caption>Table 3.8: Largest group by county in Arizona<\/caption>","data":[["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15"],["Apache County, Arizona","Cochise County, Arizona","Coconino County, Arizona","Gila County, Arizona","Graham County, Arizona","Greenlee County, Arizona","La Paz County, Arizona","Maricopa County, Arizona","Mohave County, Arizona","Navajo County, Arizona","Pima County, Arizona","Pinal County, Arizona","Santa Cruz County, Arizona","Yavapai County, Arizona","Yuma County, Arizona"],["Native","White","White","White","White","Hispanic","White","White","White","Native","White","White","Hispanic","White","Hispanic"],[72.48096605962574,54.64560826307714,53.80797728007648,61.85231957805593,50.8876357560568,47.2688853671421,57.18088899453292,54.55514540836964,76.69693551597645,42.71385949161611,51.14648773780039,56.24018285857284,83.25535476670815,80.11368526136422,64.0675502875936]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>NAME<\/th>\n      <th>variable<\/th>\n      <th>percent<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"dom":"t","style":"bootstrap","columnDefs":[{"className":"dt-right","targets":3},{"orderable":false,"targets":0},{"name":" ","targets":0},{"name":"NAME","targets":1},{"name":"variable","targets":2},{"name":"percent","targets":3}],"order":[],"autoWidth":false,"orderClasses":false},"selection":{"mode":"multiple","selected":null,"target":"row","selectable":null}},"evals":[],"jsHooks":[]}</script>
+</div>
+</div>
+<div class="task">
+<p>Group <code>estimate_percent_long_dt</code> by race from the “variable” column and compute summary statistics for each of the sub-groups.</p>
+</div>
+<p>Define the grouping on racial and ethnic designations (the “variable” column of <code>estimate_percent_long_dt</code>) and show the median percentage for each group ordered from highest to lowest:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>estimate_percent_median_dt <span class="ot">&lt;-</span> estimate_percent_long_dt[, .(<span class="at">median_pct =</span> stats<span class="sc">::</span><span class="fu">median</span>(percent)), by <span class="ot">=</span> variable] <span class="sc">%&gt;%</span> <span class="co"># compute the median percent for each group</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>  .[<span class="fu">order</span>(<span class="sc">-</span>median_pct)] <span class="co"># order "median_pct" column descending</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="cell-output-display">
+<div class="datatables html-widget html-fill-item" id="htmlwidget-3413e1fda6a48e3f521c" style="width:100%;height:auto;"></div>
+<script type="application/json" data-for="htmlwidget-3413e1fda6a48e3f521c">{"x":{"filter":"none","vertical":false,"caption":"<caption>Table 3.9: Median percentage by group in Arizona<\/caption>","data":[["1","2","3","4","5","6"],["White","Hispanic","Native","Black","Asian","HIPI"],[53.80797728007648,30.47218355568763,3.634442683571051,1.285728345072898,0.9918415119020982,0.1070384294068505]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>variable<\/th>\n      <th>median_pct<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"dom":"t","style":"bootstrap","columnDefs":[{"className":"dt-right","targets":2},{"orderable":false,"targets":0},{"name":" ","targets":0},{"name":"variable","targets":1},{"name":"median_pct","targets":2}],"order":[],"autoWidth":false,"orderClasses":false},"selection":{"mode":"multiple","selected":null,"target":"row","selectable":null}},"evals":[],"jsHooks":[]}</script>
+</div>
+</div>
+</section>
+<section id="tabulating-new-groups" class="level3">
+<h3 class="anchored" data-anchor-id="tabulating-new-groups">3.3.2 Tabulating new groups</h3>
+<div class="task">
+<p>Re-combine the bands of household income to broader bands for Minnesota counties from the 2012-2016 “acs/acs5” dataset.</p>
+</div>
+<p>Get the household income by county in Minnesota:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>mn_fips <span class="ot">&lt;-</span> usmap<span class="sc">::</span><span class="fu">fips</span>(<span class="st">"MN"</span>)</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>mn_hh_income_dt <span class="ot">&lt;-</span> RcensusPkg<span class="sc">::</span><span class="fu">get_vintage_data</span>(</span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">dataset =</span> <span class="st">"acs/acs5"</span>,</span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">vintage =</span> <span class="dv">2016</span>,</span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">group =</span> <span class="st">"B19001"</span>,</span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">region =</span> <span class="st">"county:*"</span>,</span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">regionin =</span> <span class="fu">paste0</span>(<span class="st">"state:"</span>, mn_fips),</span>
+<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">wide_to_long =</span> T</span>
+<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a>) <span class="sc">%&gt;%</span></span>
+<span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a>  .[, <span class="st">`</span><span class="at">:=</span><span class="st">`</span> (<span class="at">estimate =</span> <span class="fu">as.numeric</span>(estimate), <span class="at">moe =</span> <span class="fu">as.numeric</span>(moe))] <span class="sc">%&gt;%</span></span>
+<span id="cb17-11"><a href="#cb17-11" aria-hidden="true" tabindex="-1"></a>  .[, .(GEOID, NAME, variable, estimate, moe)] <span class="sc">%&gt;%</span></span>
+<span id="cb17-12"><a href="#cb17-12" aria-hidden="true" tabindex="-1"></a>  .[<span class="fu">order</span>(GEOID, variable)]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="cell-output-display">
+<div class="datatables html-widget html-fill-item" id="htmlwidget-05187ad500a7e8bdd538" style="width:100%;height:auto;"></div>
+<script type="application/json" data-for="htmlwidget-05187ad500a7e8bdd538">{"x":{"filter":"none","vertical":false,"caption":"<caption>Table 3.10: Table/Group B19001 for counties in Minnesota<\/caption>","data":[["1","2","3","4","5","6"],["27001","27001","27001","27001","27001","27001"],["Aitkin County, Minnesota","Aitkin County, Minnesota","Aitkin County, Minnesota","Aitkin County, Minnesota","Aitkin County, Minnesota","Aitkin County, Minnesota"],["B19001_001","B19001_002","B19001_003","B19001_004","B19001_005","B19001_006"],[7640,562,544,472,508,522],[262,77,72,69,68,92]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>GEOID<\/th>\n      <th>NAME<\/th>\n      <th>variable<\/th>\n      <th>estimate<\/th>\n      <th>moe<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"dom":"t","style":"bootstrap","columnDefs":[{"className":"dt-right","targets":[4,5]},{"orderable":false,"targets":0},{"name":" ","targets":0},{"name":"GEOID","targets":1},{"name":"NAME","targets":2},{"name":"variable","targets":3},{"name":"estimate","targets":4},{"name":"moe","targets":5}],"order":[],"autoWidth":false,"orderClasses":false},"selection":{"mode":"multiple","selected":null,"target":"row","selectable":null}},"evals":[],"jsHooks":[]}</script>
+</div>
+</div>
+<div class="task">
+<p>Consolidate the 16 bands of income (“B19001_2” to “B19001_017”) into 3 bands.</p>
+</div>
+<p>Use data.table’s <code>fcase()</code> function. Disregard the “B19001_001” which is the total number of households for each county.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>mm_hh_income_recode_dt <span class="ot">&lt;-</span> mn_hh_income_dt <span class="sc">%&gt;%</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>  .[variable <span class="sc">!=</span> <span class="st">"B19001_001"</span>] <span class="sc">%&gt;%</span></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>  .[, variable <span class="sc">:</span><span class="er">=</span> <span class="fu">as.character</span>(variable)] <span class="sc">%&gt;%</span>         <span class="co"># "variable" column is factor; change it to character</span></span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>  .[, incgroup <span class="sc">:</span><span class="er">=</span> <span class="fu">fcase</span>(                              <span class="co"># re-band "variable" column</span></span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>    variable <span class="sc">&lt;</span> <span class="st">"B19001_008"</span>, <span class="st">"below35k"</span>,</span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>    variable <span class="sc">&gt;=</span> <span class="st">"B19001_008"</span> <span class="sc">&amp;</span>  variable <span class="sc">&lt;</span> <span class="st">"B19001_013"</span>, <span class="st">"bw35kand75k"</span>,</span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a>    variable <span class="sc">&gt;=</span> <span class="st">"B19001_013"</span>, <span class="st">"above75k"</span>)] </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="cell-output-display">
+<div class="datatables html-widget html-fill-item" id="htmlwidget-c39ec29a8f4da1a51c3c" style="width:100%;height:auto;"></div>
+<script type="application/json" data-for="htmlwidget-c39ec29a8f4da1a51c3c">{"x":{"filter":"none","vertical":false,"caption":"<caption>Table 3.11: Recoded household income categories<\/caption>","data":[["1","2","3","4","5","6","7","8","9","10","11","12"],["27001","27001","27001","27001","27001","27001","27001","27001","27001","27001","27001","27001"],["Aitkin County, Minnesota","Aitkin County, Minnesota","Aitkin County, Minnesota","Aitkin County, Minnesota","Aitkin County, Minnesota","Aitkin County, Minnesota","Aitkin County, Minnesota","Aitkin County, Minnesota","Aitkin County, Minnesota","Aitkin County, Minnesota","Aitkin County, Minnesota","Aitkin County, Minnesota"],["B19001_002","B19001_003","B19001_004","B19001_005","B19001_006","B19001_007","B19001_008","B19001_009","B19001_010","B19001_011","B19001_012","B19001_013"],[562,544,472,508,522,447,390,426,415,706,942,810],[77,72,69,68,92,61,49,64,65,81,100,68],["below35k","below35k","below35k","below35k","below35k","below35k","bw35kand75k","bw35kand75k","bw35kand75k","bw35kand75k","bw35kand75k","above75k"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>GEOID<\/th>\n      <th>NAME<\/th>\n      <th>variable<\/th>\n      <th>estimate<\/th>\n      <th>moe<\/th>\n      <th>incgroup<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"dom":"t","style":"bootstrap","columnDefs":[{"className":"dt-right","targets":[4,5]},{"orderable":false,"targets":0},{"name":" ","targets":0},{"name":"GEOID","targets":1},{"name":"NAME","targets":2},{"name":"variable","targets":3},{"name":"estimate","targets":4},{"name":"moe","targets":5},{"name":"incgroup","targets":6}],"order":[],"autoWidth":false,"orderClasses":false},"selection":{"mode":"multiple","selected":null,"target":"row","selectable":null}},"evals":[],"jsHooks":[]}</script>
+</div>
+</div>
+<div class="task">
+<p>Group <code>mm_hh_income_recode_dt</code> by “incgroup” and compute the sum of “estimate” for each sub-group.</p>
+</div>
+<p>Use <code>data.table</code>’s <code>by</code> directive:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>mm_hh_income_recode_grouped_dt <span class="ot">&lt;-</span> mm_hh_income_recode_dt[, .(<span class="at">estimate =</span> <span class="fu">sum</span>(estimate)), by <span class="ot">=</span> <span class="fu">c</span>(<span class="st">"GEOID"</span>, <span class="st">"incgroup"</span>)] </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="cell-output-display">
+<div class="datatables html-widget html-fill-item" id="htmlwidget-1b701f427192f40b72fe" style="width:100%;height:auto;"></div>
+<script type="application/json" data-for="htmlwidget-1b701f427192f40b72fe">{"x":{"filter":"none","vertical":false,"caption":"<caption>Table 3.12: Grouped sums by income bands<\/caption>","data":[["1","2","3","4","5","6"],["27001","27001","27001","27003","27003","27003"],["below35k","bw35kand75k","above75k","below35k","bw35kand75k","above75k"],[3055,2879,1706,24546,39311,61403]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>GEOID<\/th>\n      <th>incgroup<\/th>\n      <th>estimate<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"dom":"t","style":"bootstrap","columnDefs":[{"className":"dt-right","targets":3},{"orderable":false,"targets":0},{"name":" ","targets":0},{"name":"GEOID","targets":1},{"name":"incgroup","targets":2},{"name":"estimate","targets":3}],"order":[],"autoWidth":false,"orderClasses":false},"selection":{"mode":"multiple","selected":null,"target":"row","selectable":null}},"evals":[],"jsHooks":[]}</script>
+</div>
+</div>
+</section>
+</section>
+<section id="comparing-acs-estimates-over-time" class="level2 page-columns page-full">
+<h2 class="anchored" data-anchor-id="comparing-acs-estimates-over-time">3.4 Comparing ACS estimates over time</h2>
+<section id="time-series-analysis-some-cautions" class="level3 page-columns page-full">
+<h3 class="anchored" data-anchor-id="time-series-analysis-some-cautions">3.4.1 Time-series analysis: some cautions</h3>
+<p>Looking at geography changes over time.</p>
+<div class="task">
+<p>Look at age data (group = “B01001”) on Oglala Lakota County, South Dakota.</p>
+</div>
+<p>Call <code>RcensusPkg::get_vintage_data()</code>:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>sd_oglala_fips <span class="ot">&lt;-</span> usmap<span class="sc">::</span><span class="fu">fips</span>(<span class="at">state =</span> <span class="st">"SD"</span>, <span class="at">county =</span> <span class="st">"Oglala Lakota"</span>)</span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>oglala_lakota_age_2020_dt <span class="ot">&lt;-</span> RcensusPkg<span class="sc">::</span><span class="fu">get_vintage_data</span>(</span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">dataset =</span> <span class="st">"acs/acs5"</span>,</span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">vintage =</span> <span class="dv">2020</span>,</span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">group =</span> <span class="st">"B01001"</span>,</span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">region =</span> <span class="fu">paste0</span>(<span class="st">"county:"</span>, <span class="fu">substr</span>(sd_oglala_fips,<span class="dv">3</span>,<span class="dv">5</span>)),</span>
+<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">regionin =</span> <span class="fu">paste0</span>(<span class="st">"state:"</span>, <span class="fu">substr</span>(sd_oglala_fips,<span class="dv">1</span>,<span class="dv">2</span>)),</span>
+<span id="cb20-8"><a href="#cb20-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">wide_to_long =</span> T</span>
+<span id="cb20-9"><a href="#cb20-9" aria-hidden="true" tabindex="-1"></a>) <span class="sc">%&gt;%</span></span>
+<span id="cb20-10"><a href="#cb20-10" aria-hidden="true" tabindex="-1"></a>.[, <span class="st">`</span><span class="at">:=</span><span class="st">`</span>(<span class="at">estimate =</span> <span class="fu">as.numeric</span>(estimate), <span class="at">moe =</span> <span class="fu">as.numeric</span>(moe))] <span class="sc">%&gt;%</span></span>
+<span id="cb20-11"><a href="#cb20-11" aria-hidden="true" tabindex="-1"></a>.[, moe <span class="sc">:</span><span class="er">=</span> <span class="fu">ifelse</span>(moe <span class="sc">==</span> <span class="sc">-</span><span class="dv">555555555</span>, <span class="cn">NA</span>, moe)] <span class="sc">%&gt;%</span></span>
+<span id="cb20-12"><a href="#cb20-12" aria-hidden="true" tabindex="-1"></a>.[, .(GEOID, NAME, variable, estimate, moe)]  </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="page-columns page-full"><p></p><div class="no-row-height column-margin column-container"><span class="">To look at how the age numbers have changed, we could compare the above table with the data from a previous survey such as the 2006-2010 ACS 5-year survey. But a request for the data would result in an error because Oglala Lakota County had a different name in 2010 (i.e.&nbsp;“Shannon County” which has a fips code of “46113”).</span></div></div>
+<div class="cell">
+<div class="cell-output-display">
+<div class="datatables html-widget html-fill-item" id="htmlwidget-8068b45cb747ad5b0ef4" style="width:100%;height:auto;"></div>
+<script type="application/json" data-for="htmlwidget-8068b45cb747ad5b0ef4">{"x":{"filter":"none","vertical":false,"caption":"<caption>Table 3.13: Age table/group for Oglala Lakota County<\/caption>","data":[["1","2","3","4","5","6"],["46102","46102","46102","46102","46102","46102"],["Oglala Lakota County, South Dakota","Oglala Lakota County, South Dakota","Oglala Lakota County, South Dakota","Oglala Lakota County, South Dakota","Oglala Lakota County, South Dakota","Oglala Lakota County, South Dakota"],["B01001_001","B01001_002","B01001_003","B01001_004","B01001_005","B01001_006"],[14277,6930,761,794,707,394],[null,132,66,128,123,20]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>GEOID<\/th>\n      <th>NAME<\/th>\n      <th>variable<\/th>\n      <th>estimate<\/th>\n      <th>moe<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"dom":"t","style":"bootstrap","columnDefs":[{"className":"dt-right","targets":[4,5]},{"orderable":false,"targets":0},{"name":" ","targets":0},{"name":"GEOID","targets":1},{"name":"NAME","targets":2},{"name":"variable","targets":3},{"name":"estimate","targets":4},{"name":"moe","targets":5}],"order":[],"autoWidth":false,"orderClasses":false},"selection":{"mode":"multiple","selected":null,"target":"row","selectable":null}},"evals":[],"jsHooks":[]}</script>
+</div>
+</div>
+<div class="task">
+<p>Get the 2010 age data for the South Dakota county named “Shannon County”.</p>
+</div>
+<p>Call <code>RcensusPkg::get_vintage_data()</code> using the “46113” fips code):</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>sd_oglala_2010_fips <span class="ot">&lt;-</span> <span class="st">"46113"</span></span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>oglala_lakota_age_2010_dt <span class="ot">&lt;-</span> RcensusPkg<span class="sc">::</span><span class="fu">get_vintage_data</span>(</span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">dataset =</span> <span class="st">"acs/acs5"</span>,</span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">vintage =</span> <span class="dv">2010</span>,</span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">group =</span> <span class="st">"B01001"</span>,</span>
+<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">region =</span> <span class="fu">paste0</span>(<span class="st">"county:"</span>, <span class="fu">substr</span>(sd_oglala_2010_fips,<span class="dv">3</span>,<span class="dv">5</span>)),</span>
+<span id="cb21-7"><a href="#cb21-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">regionin =</span> <span class="fu">paste0</span>(<span class="st">"state:"</span>, <span class="fu">substr</span>(sd_oglala_2010_fips,<span class="dv">1</span>,<span class="dv">2</span>)),</span>
+<span id="cb21-8"><a href="#cb21-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">wide_to_long =</span> T</span>
+<span id="cb21-9"><a href="#cb21-9" aria-hidden="true" tabindex="-1"></a>) <span class="sc">%&gt;%</span></span>
+<span id="cb21-10"><a href="#cb21-10" aria-hidden="true" tabindex="-1"></a>.[, <span class="st">`</span><span class="at">:=</span><span class="st">`</span>(<span class="at">estimate =</span> <span class="fu">as.numeric</span>(estimate), <span class="at">moe =</span> <span class="fu">as.numeric</span>(moe))] <span class="sc">%&gt;%</span></span>
+<span id="cb21-11"><a href="#cb21-11" aria-hidden="true" tabindex="-1"></a>.[, moe <span class="sc">:</span><span class="er">=</span> <span class="fu">ifelse</span>(moe <span class="sc">==</span> <span class="sc">-</span><span class="dv">555555555</span>, <span class="cn">NA</span>, moe)] <span class="sc">%&gt;%</span></span>
+<span id="cb21-12"><a href="#cb21-12" aria-hidden="true" tabindex="-1"></a>.[, .(GEOID, NAME, variable, estimate, moe)]  </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="cell-output-display">
+<div class="datatables html-widget html-fill-item" id="htmlwidget-a36a76d585faf739e82b" style="width:100%;height:auto;"></div>
+<script type="application/json" data-for="htmlwidget-a36a76d585faf739e82b">{"x":{"filter":"none","vertical":false,"caption":"<caption>Table 3.14: Age table/group for Oglala Lakota County, SD (then named Shannon County)<\/caption>","data":[["1","2","3","4","5","6"],["46113","46113","46113","46113","46113","46113"],["Shannon County, South Dakota","Shannon County, South Dakota","Shannon County, South Dakota","Shannon County, South Dakota","Shannon County, South Dakota","Shannon County, South Dakota"],["B01001_001","B01001_002","B01001_003","B01001_004","B01001_005","B01001_006"],[13437,6553,770,565,833,541],[null,47,99,151,151,47]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>GEOID<\/th>\n      <th>NAME<\/th>\n      <th>variable<\/th>\n      <th>estimate<\/th>\n      <th>moe<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"dom":"t","style":"bootstrap","columnDefs":[{"className":"dt-right","targets":[4,5]},{"orderable":false,"targets":0},{"name":" ","targets":0},{"name":"GEOID","targets":1},{"name":"NAME","targets":2},{"name":"variable","targets":3},{"name":"estimate","targets":4},{"name":"moe","targets":5}],"order":[],"autoWidth":false,"orderClasses":false},"selection":{"mode":"multiple","selected":null,"target":"row","selectable":null}},"evals":[],"jsHooks":[]}</script>
+</div>
+</div>
+<p>In addition to changes in geographic identifiers, variable IDs can change over time as well.</p>
+<div class="task">
+<p>Demonstrate changes in the variable acronym name “DP02_0068” from the “acs/acs1/profile” dataset for the years 2018 and 2019.</p>
+</div>
+<p>The acronym “DP02_0068” is the percentage of residents age 25 and up with a 4-year college degree.</p>
+<p>Use <code>RcensusPkg::get_variable_names()</code> with its string filter for filtering the resultant data.table’s “name” column for 2019:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>DP02_0068_2019_dt <span class="ot">&lt;-</span> RcensusPkg<span class="sc">::</span><span class="fu">get_variable_names</span>(</span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">dataset =</span> <span class="st">"acs/acs1/profile"</span>,</span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">vintage =</span> <span class="dv">2019</span>,</span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">filter_name_str =</span> <span class="st">"dp02_0068"</span></span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="cell-output-display">
+<div class="datatables html-widget html-fill-item" id="htmlwidget-19976ebf38b2c8e0fc84" style="width:100%;height:auto;"></div>
+<script type="application/json" data-for="htmlwidget-19976ebf38b2c8e0fc84">{"x":{"filter":"none","vertical":false,"caption":"<caption>Table 3.15: ACS Data Profile data in 2019<\/caption>","data":[["1","2"],["DP02_0068E","DP02_0068PE"],["Estimate!!EDUCATIONAL ATTAINMENT!!Population 25 years and over!!Bachelor's degree or higher","Percent!!EDUCATIONAL ATTAINMENT!!Population 25 years and over!!Bachelor's degree or higher"],["SELECTED SOCIAL CHARACTERISTICS IN THE UNITED STATES","SELECTED SOCIAL CHARACTERISTICS IN THE UNITED STATES"],[null,null],["int","float"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>name<\/th>\n      <th>label<\/th>\n      <th>concept<\/th>\n      <th>required<\/th>\n      <th>predicateType<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"dom":"t","style":"bootstrap","columnDefs":[{"orderable":false,"targets":0},{"name":" ","targets":0},{"name":"name","targets":1},{"name":"label","targets":2},{"name":"concept","targets":3},{"name":"required","targets":4},{"name":"predicateType","targets":5}],"order":[],"autoWidth":false,"orderClasses":false},"selection":{"mode":"multiple","selected":null,"target":"row","selectable":null}},"evals":[],"jsHooks":[]}</script>
+</div>
+</div>
+<p>Use <code>RcensusPkg::get_variable_names()</code> with its string filter for filtering the resultant data.table’s “name” column for 2018:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>DP02_0068_2018_dt <span class="ot">&lt;-</span> RcensusPkg<span class="sc">::</span><span class="fu">get_variable_names</span>(</span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">dataset =</span> <span class="st">"acs/acs1/profile"</span>,</span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">vintage =</span> <span class="dv">2018</span>,</span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">filter_name_str =</span> <span class="st">"dp02_0068"</span></span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="page-columns page-full"><p></p><div class="no-row-height column-margin column-container"><span class="">We see from the table that the variable acronym “DP02_0068” has completely changed in its definition from vintage 2018 to vintage 2019.</span></div></div>
+<div class="cell">
+<div class="cell-output-display">
+<div class="datatables html-widget html-fill-item" id="htmlwidget-1ee0e4b264163e58f13e" style="width:100%;height:auto;"></div>
+<script type="application/json" data-for="htmlwidget-1ee0e4b264163e58f13e">{"x":{"filter":"none","vertical":false,"caption":"<caption>Table 3.16: ACS Data Profile data in 2018<\/caption>","data":[["1","2"],["DP02_0068E","DP02_0068PE"],["Estimate!!VETERAN STATUS!!Civilian population 18 years and over","Percent Estimate!!VETERAN STATUS!!Civilian population 18 years and over"],["SELECTED SOCIAL CHARACTERISTICS IN THE UNITED STATES","SELECTED SOCIAL CHARACTERISTICS IN THE UNITED STATES"],[null,null],["int","int"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>name<\/th>\n      <th>label<\/th>\n      <th>concept<\/th>\n      <th>required<\/th>\n      <th>predicateType<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"dom":"t","style":"bootstrap","columnDefs":[{"orderable":false,"targets":0},{"name":" ","targets":0},{"name":"name","targets":1},{"name":"label","targets":2},{"name":"concept","targets":3},{"name":"required","targets":4},{"name":"predicateType","targets":5}],"order":[],"autoWidth":false,"orderClasses":false},"selection":{"mode":"multiple","selected":null,"target":"row","selectable":null}},"evals":[],"jsHooks":[]}</script>
+</div>
+</div>
+</section>
+<section id="preparing-time-series-acs-estimates" class="level3 page-columns page-full">
+<h3 class="anchored" data-anchor-id="preparing-time-series-acs-estimates">3.4.2 Preparing time-series ACS estimates</h3>
+<p>The variables in the Comparison Profile dataset is an alternative for time comparisons. Groups of variables are available in both 1-year (acs/acs1/cprofile) and 5-year (acs/acs5/cprofile) datasets.</p>
+<div class="task">
+<p>Get inflation-adjusted median household incomes of Alaska counties and county-equivalents for 2015/2020.</p>
+</div>
+<p>Find the variable acronym names of interest from the acs/acs1/cprofile dataset:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>hh_income_vars_dt <span class="ot">&lt;-</span> RcensusPkg<span class="sc">::</span><span class="fu">get_variable_names</span>(</span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">dataset =</span> <span class="st">"acs/acs5/cprofile"</span>,</span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">vintage =</span> <span class="dv">2020</span>,</span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">filter_label_str =</span> <span class="st">"median household income"</span></span>
+<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="cell-output-display">
+<div class="datatables html-widget html-fill-item" id="htmlwidget-3e9f2295537621e3c76e" style="width:100%;height:auto;"></div>
+<script type="application/json" data-for="htmlwidget-3e9f2295537621e3c76e">{"x":{"filter":"none","vertical":false,"caption":"<caption>Table 17a: Variables available that addresses median household income<\/caption>","data":[["1","2"],["CP03_2015_062E","CP03_2020_062E"],["2011-2015 Estimates!!INCOME AND BENEFITS (IN 2020 INFLATION-ADJUSTED DOLLARS)!!Total households!!Median household income (dollars)","2016-2020 Estimates!!INCOME AND BENEFITS (IN 2020 INFLATION-ADJUSTED DOLLARS)!!Total households!!Median household income (dollars)"],["COMPARATIVE ECONOMIC CHARACTERISTICS","COMPARATIVE ECONOMIC CHARACTERISTICS"],[null,null],["int","int"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>name<\/th>\n      <th>label<\/th>\n      <th>concept<\/th>\n      <th>required<\/th>\n      <th>predicateType<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"dom":"t","style":"bootstrap","columnDefs":[{"orderable":false,"targets":0},{"name":" ","targets":0},{"name":"name","targets":1},{"name":"label","targets":2},{"name":"concept","targets":3},{"name":"required","targets":4},{"name":"predicateType","targets":5}],"order":[],"autoWidth":false,"orderClasses":false},"selection":{"mode":"multiple","selected":null,"target":"row","selectable":null}},"evals":[],"jsHooks":[]}</script>
+</div>
+</div>
+<p>Get the 5-year 2015/2020 median household incomes for Alaska counties:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>alaska_fips <span class="ot">&lt;-</span> usmap<span class="sc">::</span><span class="fu">fips</span>(<span class="at">state =</span> <span class="st">"alaska"</span>)</span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>alaska_hh_incomes_dt <span class="ot">&lt;-</span> RcensusPkg<span class="sc">::</span><span class="fu">get_vintage_data</span>(</span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">dataset =</span> <span class="st">"acs/acs5/cprofile"</span>,</span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">vintage =</span> <span class="dv">2020</span>,</span>
+<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">vars =</span> <span class="fu">c</span>(<span class="st">"CP03_2015_062E"</span>, <span class="st">"CP03_2020_062E"</span>),</span>
+<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">region =</span> <span class="st">"county:*"</span>,</span>
+<span id="cb25-7"><a href="#cb25-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">regionin =</span> <span class="fu">paste0</span>(<span class="st">"state:"</span>, alaska_fips)</span>
+<span id="cb25-8"><a href="#cb25-8" aria-hidden="true" tabindex="-1"></a>) <span class="sc">%&gt;%</span></span>
+<span id="cb25-9"><a href="#cb25-9" aria-hidden="true" tabindex="-1"></a>data.table<span class="sc">::</span><span class="fu">setnames</span>(., <span class="at">old =</span> <span class="fu">c</span>(<span class="st">"CP03_2015_062E"</span>, <span class="st">"CP03_2020_062E"</span>), <span class="at">new =</span> <span class="fu">c</span>(<span class="st">"income15"</span>,<span class="st">"income20"</span>)) <span class="sc">%&gt;%</span> </span>
+<span id="cb25-10"><a href="#cb25-10" aria-hidden="true" tabindex="-1"></a>.[, .(GEOID, NAME, income15, income20)]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Reshape <code>alaska_hh_incomes_dt</code> from its default “wide” shape to “long”:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>alaska_hh_incomes_long_dt <span class="ot">&lt;-</span> RcensusPkg<span class="sc">::</span><span class="fu">wide_to_long</span>(</span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">dt =</span> alaska_hh_incomes_dt</span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>)<span class="sc">%&gt;%</span></span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a>.[<span class="fu">order</span>(GEOID)]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="cell-output-display">
+<div class="datatables html-widget html-fill-item" id="htmlwidget-7e6a5ee40ff306eb5116" style="width:100%;height:auto;"></div>
+<script type="application/json" data-for="htmlwidget-7e6a5ee40ff306eb5116">{"x":{"filter":"none","vertical":false,"caption":"<caption>Table 3.17: Comparative income data from the ACS CP tables<\/caption>","data":[["1","2","3","4","5","6"],["Aleutians West Census Area, Alaska","Aleutians West Census Area, Alaska","Anchorage Municipality, Alaska","Anchorage Municipality, Alaska","Bethel Census Area, Alaska","Bethel Census Area, Alaska"],["02016","02016","02020","02020","02050","02050"],["income15","income20","income15","income20","income15","income20"],["92500","87443","85534","84813","55692","54400"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>NAME<\/th>\n      <th>GEOID<\/th>\n      <th>variable<\/th>\n      <th>estimate<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"dom":"t","style":"bootstrap","columnDefs":[{"orderable":false,"targets":0},{"name":" ","targets":0},{"name":"NAME","targets":1},{"name":"GEOID","targets":2},{"name":"variable","targets":3},{"name":"estimate","targets":4}],"order":[],"autoWidth":false,"orderClasses":false},"selection":{"mode":"multiple","selected":null,"target":"row","selectable":null}},"evals":[],"jsHooks":[]}</script>
+</div>
+</div>
+<section id="iterating-over-acs-years-with-tidyverse-tools" class="level4 page-columns page-full">
+<h4 class="anchored" data-anchor-id="iterating-over-acs-years-with-tidyverse-tools">3.4.2.1 Iterating over ACS years with tidyverse tools</h4>
+<div class="task">
+<p>Use <a href="https://purrr.tidyverse.org/">purrr</a> to iterate through the years 2010 to 2019 to request data on college degree holders (group/table “B15002”) for counties in Colorado from the “acs/acs1” dataset.</p>
+</div>
+<p>Review the “B15002” variables of interest:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>vars <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>  <span class="st">"B15002_001E"</span>, <span class="st">"B15002_001M"</span>, <span class="co"># the summary variables</span></span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>  <span class="st">"B15002_015E"</span>, <span class="st">"B15002_015M"</span>,</span>
+<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a>  <span class="st">"B15002_016E"</span>, <span class="st">"B15002_016M"</span>,</span>
+<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a>  <span class="st">"B15002_017E"</span>, <span class="st">"B15002_017M"</span>,</span>
+<span id="cb27-6"><a href="#cb27-6" aria-hidden="true" tabindex="-1"></a>  <span class="st">"B15002_018E"</span>, <span class="st">"B15002_018M"</span>,</span>
+<span id="cb27-7"><a href="#cb27-7" aria-hidden="true" tabindex="-1"></a>  <span class="st">"B15002_032E"</span>, <span class="st">"B15002_032M"</span>,</span>
+<span id="cb27-8"><a href="#cb27-8" aria-hidden="true" tabindex="-1"></a>  <span class="st">"B15002_033E"</span>, <span class="st">"B15002_033M"</span>,</span>
+<span id="cb27-9"><a href="#cb27-9" aria-hidden="true" tabindex="-1"></a>  <span class="st">"B15002_034E"</span>, <span class="st">"B15002_034M"</span>,</span>
+<span id="cb27-10"><a href="#cb27-10" aria-hidden="true" tabindex="-1"></a>  <span class="st">"B15002_035E"</span>, <span class="st">"B15002_035M"</span></span>
+<span id="cb27-11"><a href="#cb27-11" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb27-12"><a href="#cb27-12" aria-hidden="true" tabindex="-1"></a>vars_B15002_dt <span class="ot">&lt;-</span> RcensusPkg<span class="sc">::</span><span class="fu">get_variable_names</span>(</span>
+<span id="cb27-13"><a href="#cb27-13" aria-hidden="true" tabindex="-1"></a>  <span class="at">dataset =</span> <span class="st">"acs/acs1"</span>,</span>
+<span id="cb27-14"><a href="#cb27-14" aria-hidden="true" tabindex="-1"></a>  <span class="at">vintage =</span> <span class="dv">2019</span>,</span>
+<span id="cb27-15"><a href="#cb27-15" aria-hidden="true" tabindex="-1"></a>  <span class="at">vars =</span> vars</span>
+<span id="cb27-16"><a href="#cb27-16" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="cell-output-display">
+<div class="datatables html-widget html-fill-item" id="htmlwidget-ea9dcb25ac2e91f4ea9d" style="width:100%;height:auto;"></div>
+<script type="application/json" data-for="htmlwidget-ea9dcb25ac2e91f4ea9d">{"x":{"filter":"none","vertical":false,"caption":"<caption>Table 18a: 'B15002' variables of interest<\/caption>","data":[["1","2","3","4","5","6","7","8","9"],["B15002_001E","B15002_015E","B15002_016E","B15002_017E","B15002_018E","B15002_032E","B15002_033E","B15002_034E","B15002_035E"],["Estimate!!Total:","Estimate!!Total:!!Male:!!Bachelor's degree","Estimate!!Total:!!Male:!!Master's degree","Estimate!!Total:!!Male:!!Professional school degree","Estimate!!Total:!!Male:!!Doctorate degree","Estimate!!Total:!!Female:!!Bachelor's degree","Estimate!!Total:!!Female:!!Master's degree","Estimate!!Total:!!Female:!!Professional school degree","Estimate!!Total:!!Female:!!Doctorate degree"],["SEX BY EDUCATIONAL ATTAINMENT FOR THE POPULATION 25 YEARS AND OVER","SEX BY EDUCATIONAL ATTAINMENT FOR THE POPULATION 25 YEARS AND OVER","SEX BY EDUCATIONAL ATTAINMENT FOR THE POPULATION 25 YEARS AND OVER","SEX BY EDUCATIONAL ATTAINMENT FOR THE POPULATION 25 YEARS AND OVER","SEX BY EDUCATIONAL ATTAINMENT FOR THE POPULATION 25 YEARS AND OVER","SEX BY EDUCATIONAL ATTAINMENT FOR THE POPULATION 25 YEARS AND OVER","SEX BY EDUCATIONAL ATTAINMENT FOR THE POPULATION 25 YEARS AND OVER","SEX BY EDUCATIONAL ATTAINMENT FOR THE POPULATION 25 YEARS AND OVER","SEX BY EDUCATIONAL ATTAINMENT FOR THE POPULATION 25 YEARS AND OVER"],[null,null,null,null,null,null,null,null,null],["int","int","int","int","int","int","int","int","int"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>name<\/th>\n      <th>label<\/th>\n      <th>concept<\/th>\n      <th>required<\/th>\n      <th>predicateType<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"dom":"t","style":"bootstrap","columnDefs":[{"orderable":false,"targets":0},{"name":" ","targets":0},{"name":"name","targets":1},{"name":"label","targets":2},{"name":"concept","targets":3},{"name":"required","targets":4},{"name":"predicateType","targets":5}],"order":[],"autoWidth":false,"orderClasses":false},"selection":{"mode":"multiple","selected":null,"target":"row","selectable":null}},"evals":[],"jsHooks":[]}</script>
+</div>
+</div>
+<p>Call <code>purrr::map_dfr()</code> to retrieve the “B15002_*” data for the years of interest as a row combined data.table:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>colorado_fips <span class="ot">&lt;-</span> usmap<span class="sc">::</span><span class="fu">fips</span>(<span class="at">state =</span> <span class="st">"colorado"</span>)</span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>vintages <span class="ot">&lt;-</span> <span class="dv">2010</span><span class="sc">:</span><span class="dv">2019</span></span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a><span class="fu">names</span>(vintages) <span class="ot">&lt;-</span> vintages</span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a>college_by_year_dt <span class="ot">&lt;-</span> purrr<span class="sc">::</span><span class="fu">map_dfr</span>(vintages, <span class="sc">~</span>{</span>
+<span id="cb28-6"><a href="#cb28-6" aria-hidden="true" tabindex="-1"></a>  RcensusPkg<span class="sc">::</span><span class="fu">get_vintage_data</span>(</span>
+<span id="cb28-7"><a href="#cb28-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">dataset =</span> <span class="st">"acs/acs1"</span>,</span>
+<span id="cb28-8"><a href="#cb28-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">vintage =</span> .x,</span>
+<span id="cb28-9"><a href="#cb28-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">vars =</span> vars,</span>
+<span id="cb28-10"><a href="#cb28-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">region =</span> <span class="st">"county:*"</span>,</span>
+<span id="cb28-11"><a href="#cb28-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">regionin =</span> <span class="fu">paste0</span>(<span class="st">"state:"</span>,colorado_fips)</span>
+<span id="cb28-12"><a href="#cb28-12" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb28-13"><a href="#cb28-13" aria-hidden="true" tabindex="-1"></a>}, <span class="at">.id =</span> <span class="st">"year"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb28-14"><a href="#cb28-14" aria-hidden="true" tabindex="-1"></a>.[, <span class="st">`</span><span class="at">:=</span><span class="st">`</span>(<span class="at">state =</span> <span class="cn">NULL</span>, <span class="at">county =</span> <span class="cn">NULL</span>)]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>As an alternative call <code>RcensusPkg::get_multi_vintage_data()</code> to retrieve across multiple years:</p>
+<div class="page-columns page-full"><p></p><div class="no-row-height column-margin column-container"><span class="">Note that both <code>college_by_year_dt</code> and <code>college_by_year_alt_dt</code> are identical.</span></div></div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>college_by_year_alt_dt <span class="ot">&lt;-</span> RcensusPkg<span class="sc">::</span><span class="fu">get_multi_vintage_data</span>(</span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">dataset =</span> <span class="st">"acs/acs1"</span>,</span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">vintage_v =</span> vintages,</span>
+<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">vars =</span> vars,</span>
+<span id="cb29-5"><a href="#cb29-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">region =</span> <span class="st">"county:*"</span>,</span>
+<span id="cb29-6"><a href="#cb29-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">regionin =</span> <span class="fu">paste0</span>(<span class="st">"state:"</span>, colorado_fips)</span>
+<span id="cb29-7"><a href="#cb29-7" aria-hidden="true" tabindex="-1"></a>) <span class="sc">%&gt;%</span></span>
+<span id="cb29-8"><a href="#cb29-8" aria-hidden="true" tabindex="-1"></a>  .[,<span class="st">`</span><span class="at">:=</span><span class="st">`</span>(<span class="at">state =</span> <span class="cn">NULL</span>, <span class="at">county =</span> <span class="cn">NULL</span>)] <span class="sc">%&gt;%</span></span>
+<span id="cb29-9"><a href="#cb29-9" aria-hidden="true" tabindex="-1"></a>data.table<span class="sc">::</span><span class="fu">setnames</span>(., <span class="at">old=</span><span class="st">"vintage"</span>, <span class="at">new =</span> <span class="st">"year"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Reshape the default “wide” format of <code>college_by_year_dt</code> to a “long” format:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb30"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>college_by_year_estimate_long_dt <span class="ot">&lt;-</span> RcensusPkg<span class="sc">::</span><span class="fu">wide_to_long</span>(</span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">dt =</span> college_by_year_dt,</span>
+<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">id_v =</span> <span class="fu">c</span>(<span class="st">"year"</span>,<span class="st">"GEOID"</span>,<span class="st">"NAME"</span>),</span>
+<span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">measure_v =</span> <span class="fu">c</span>(</span>
+<span id="cb30-5"><a href="#cb30-5" aria-hidden="true" tabindex="-1"></a>    <span class="st">"B15002_015E"</span>,<span class="st">"B15002_016E"</span>,</span>
+<span id="cb30-6"><a href="#cb30-6" aria-hidden="true" tabindex="-1"></a>    <span class="st">"B15002_017E"</span>,<span class="st">"B15002_018E"</span>,</span>
+<span id="cb30-7"><a href="#cb30-7" aria-hidden="true" tabindex="-1"></a>    <span class="st">"B15002_032E"</span>,<span class="st">"B15002_033E"</span>,</span>
+<span id="cb30-8"><a href="#cb30-8" aria-hidden="true" tabindex="-1"></a>    <span class="st">"B15002_034E"</span>,<span class="st">"B15002_035E"</span></span>
+<span id="cb30-9"><a href="#cb30-9" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb30-10"><a href="#cb30-10" aria-hidden="true" tabindex="-1"></a>) <span class="sc">%&gt;%</span> </span>
+<span id="cb30-11"><a href="#cb30-11" aria-hidden="true" tabindex="-1"></a>  .[, estimate <span class="sc">:</span><span class="er">=</span> <span class="fu">as.numeric</span>(estimate)]</span>
+<span id="cb30-12"><a href="#cb30-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-13"><a href="#cb30-13" aria-hidden="true" tabindex="-1"></a>college_by_year_moe_long_dt <span class="ot">&lt;-</span> RcensusPkg<span class="sc">::</span><span class="fu">wide_to_long</span>(</span>
+<span id="cb30-14"><a href="#cb30-14" aria-hidden="true" tabindex="-1"></a>  <span class="at">dt =</span> college_by_year_dt,</span>
+<span id="cb30-15"><a href="#cb30-15" aria-hidden="true" tabindex="-1"></a>  <span class="at">id_v =</span> <span class="fu">c</span>(<span class="st">"year"</span>,<span class="st">"GEOID"</span>,<span class="st">"NAME"</span>),</span>
+<span id="cb30-16"><a href="#cb30-16" aria-hidden="true" tabindex="-1"></a>  <span class="at">measure_v =</span> <span class="fu">c</span>(</span>
+<span id="cb30-17"><a href="#cb30-17" aria-hidden="true" tabindex="-1"></a>    <span class="st">"B15002_015M"</span>,<span class="st">"B15002_016M"</span>,</span>
+<span id="cb30-18"><a href="#cb30-18" aria-hidden="true" tabindex="-1"></a>    <span class="st">"B15002_017M"</span>,<span class="st">"B15002_018M"</span>,</span>
+<span id="cb30-19"><a href="#cb30-19" aria-hidden="true" tabindex="-1"></a>    <span class="st">"B15002_032M"</span>,<span class="st">"B15002_033M"</span>,</span>
+<span id="cb30-20"><a href="#cb30-20" aria-hidden="true" tabindex="-1"></a>    <span class="st">"B15002_034M"</span>,<span class="st">"B15002_035M"</span></span>
+<span id="cb30-21"><a href="#cb30-21" aria-hidden="true" tabindex="-1"></a>  ),</span>
+<span id="cb30-22"><a href="#cb30-22" aria-hidden="true" tabindex="-1"></a>  <span class="at">value_name =</span> <span class="st">"moe"</span></span>
+<span id="cb30-23"><a href="#cb30-23" aria-hidden="true" tabindex="-1"></a>) <span class="sc">%&gt;%</span> </span>
+<span id="cb30-24"><a href="#cb30-24" aria-hidden="true" tabindex="-1"></a>  .[, moe <span class="sc">:</span><span class="er">=</span> <span class="fu">as.numeric</span>(moe)] <span class="sc">%&gt;%</span> </span>
+<span id="cb30-25"><a href="#cb30-25" aria-hidden="true" tabindex="-1"></a>  .[, .(GEOID, moe)]</span>
+<span id="cb30-26"><a href="#cb30-26" aria-hidden="true" tabindex="-1"></a> </span>
+<span id="cb30-27"><a href="#cb30-27" aria-hidden="true" tabindex="-1"></a>college_by_summary_est_dt <span class="ot">&lt;-</span> RcensusPkg<span class="sc">::</span><span class="fu">wide_to_long</span>(</span>
+<span id="cb30-28"><a href="#cb30-28" aria-hidden="true" tabindex="-1"></a>  <span class="at">dt =</span> college_by_year_dt,</span>
+<span id="cb30-29"><a href="#cb30-29" aria-hidden="true" tabindex="-1"></a>  <span class="at">id_v =</span> <span class="fu">c</span>(<span class="st">"year"</span>,<span class="st">"GEOID"</span>,<span class="st">"NAME"</span>),</span>
+<span id="cb30-30"><a href="#cb30-30" aria-hidden="true" tabindex="-1"></a>  <span class="at">measure_v =</span> <span class="st">"B15002_001E"</span>,</span>
+<span id="cb30-31"><a href="#cb30-31" aria-hidden="true" tabindex="-1"></a>  <span class="at">value_name =</span> <span class="st">"summary_est"</span></span>
+<span id="cb30-32"><a href="#cb30-32" aria-hidden="true" tabindex="-1"></a>) <span class="sc">%&gt;%</span> </span>
+<span id="cb30-33"><a href="#cb30-33" aria-hidden="true" tabindex="-1"></a>  .[, summary_est <span class="sc">:</span><span class="er">=</span> <span class="fu">as.numeric</span>(summary_est)] <span class="sc">%&gt;%</span> </span>
+<span id="cb30-34"><a href="#cb30-34" aria-hidden="true" tabindex="-1"></a>  .[, .(GEOID, year, summary_est)]</span>
+<span id="cb30-35"><a href="#cb30-35" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-36"><a href="#cb30-36" aria-hidden="true" tabindex="-1"></a>college_by_summary_moe_dt <span class="ot">&lt;-</span> RcensusPkg<span class="sc">::</span><span class="fu">wide_to_long</span>(</span>
+<span id="cb30-37"><a href="#cb30-37" aria-hidden="true" tabindex="-1"></a>  <span class="at">dt =</span> college_by_year_dt,</span>
+<span id="cb30-38"><a href="#cb30-38" aria-hidden="true" tabindex="-1"></a>  <span class="at">id_v =</span> <span class="fu">c</span>(<span class="st">"year"</span>,<span class="st">"GEOID"</span>,<span class="st">"NAME"</span>),</span>
+<span id="cb30-39"><a href="#cb30-39" aria-hidden="true" tabindex="-1"></a>  <span class="at">measure_v =</span> <span class="st">"B15002_001M"</span>,</span>
+<span id="cb30-40"><a href="#cb30-40" aria-hidden="true" tabindex="-1"></a>  <span class="at">value_name =</span> <span class="st">"summary_moe"</span></span>
+<span id="cb30-41"><a href="#cb30-41" aria-hidden="true" tabindex="-1"></a>) <span class="sc">%&gt;%</span> </span>
+<span id="cb30-42"><a href="#cb30-42" aria-hidden="true" tabindex="-1"></a>  .[, summary_moe <span class="sc">:</span><span class="er">=</span> <span class="fu">as.numeric</span>(summary_moe)] <span class="sc">%&gt;%</span> </span>
+<span id="cb30-43"><a href="#cb30-43" aria-hidden="true" tabindex="-1"></a>  .[, .(GEOID, year, summary_moe)]</span>
+<span id="cb30-44"><a href="#cb30-44" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-45"><a href="#cb30-45" aria-hidden="true" tabindex="-1"></a> </span>
+<span id="cb30-46"><a href="#cb30-46" aria-hidden="true" tabindex="-1"></a>college_by_year_estimate_long_dt <span class="ot">&lt;-</span> college_by_year_estimate_long_dt <span class="sc">%&gt;%</span> </span>
+<span id="cb30-47"><a href="#cb30-47" aria-hidden="true" tabindex="-1"></a>  .[, moe <span class="sc">:</span><span class="er">=</span> college_by_year_moe_long_dt<span class="sc">$</span>moe] </span>
+<span id="cb30-48"><a href="#cb30-48" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-49"><a href="#cb30-49" aria-hidden="true" tabindex="-1"></a> </span>
+<span id="cb30-50"><a href="#cb30-50" aria-hidden="true" tabindex="-1"></a>data.table<span class="sc">::</span><span class="fu">setkeyv</span>(college_by_year_estimate_long_dt, <span class="at">cols =</span> <span class="fu">c</span>(<span class="st">"GEOID"</span>,<span class="st">"year"</span>))</span>
+<span id="cb30-51"><a href="#cb30-51" aria-hidden="true" tabindex="-1"></a>data.table<span class="sc">::</span><span class="fu">setkeyv</span>(college_by_summary_est_dt, <span class="at">cols =</span> <span class="fu">c</span>(<span class="st">"GEOID"</span>,<span class="st">"year"</span>))</span>
+<span id="cb30-52"><a href="#cb30-52" aria-hidden="true" tabindex="-1"></a>data.table<span class="sc">::</span><span class="fu">setkeyv</span>(college_by_summary_moe_dt, <span class="at">cols =</span> <span class="fu">c</span>(<span class="st">"GEOID"</span>,<span class="st">"year"</span>))</span>
+<span id="cb30-53"><a href="#cb30-53" aria-hidden="true" tabindex="-1"></a>college_by_year_estimate_long_dt <span class="ot">&lt;-</span> college_by_year_estimate_long_dt[college_by_summary_est_dt]</span>
+<span id="cb30-54"><a href="#cb30-54" aria-hidden="true" tabindex="-1"></a>college_by_year_estimate_long_dt <span class="ot">&lt;-</span> college_by_year_estimate_long_dt[college_by_summary_moe_dt] <span class="sc">%&gt;%</span> </span>
+<span id="cb30-55"><a href="#cb30-55" aria-hidden="true" tabindex="-1"></a>  data.table<span class="sc">::</span><span class="fu">setorderv</span>(<span class="at">cols =</span> <span class="fu">c</span>(<span class="st">"NAME"</span>, <span class="st">"variable"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="cell-output-display">
+<div class="datatables html-widget html-fill-item" id="htmlwidget-18674368fb46b67e0cf4" style="width:100%;height:auto;"></div>
+<script type="application/json" data-for="htmlwidget-18674368fb46b67e0cf4">{"x":{"filter":"none","vertical":false,"caption":"<caption>Table 3.18: Educational attainment over time for Colorado counties<\/caption>","data":[["1","2","3","4","5","6"],["2010","2011","2012","2013","2014","2015"],["08001","08001","08001","08001","08001","08001"],["Adams County, Colorado","Adams County, Colorado","Adams County, Colorado","Adams County, Colorado","Adams County, Colorado","Adams County, Colorado"],["B15002_015E","B15002_015E","B15002_015E","B15002_015E","B15002_015E","B15002_015E"],[20501,21233,19238,23818,20255,22962],[1983,2124,2020,2445,1928,2018],[275849,281231,287924,295122,304394,312281],[790,865,693,673,541,705]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>year<\/th>\n      <th>GEOID<\/th>\n      <th>NAME<\/th>\n      <th>variable<\/th>\n      <th>estimate<\/th>\n      <th>moe<\/th>\n      <th>summary_est<\/th>\n      <th>summary_moe<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"dom":"t","style":"bootstrap","columnDefs":[{"className":"dt-right","targets":[5,6,7,8]},{"orderable":false,"targets":0},{"name":" ","targets":0},{"name":"year","targets":1},{"name":"GEOID","targets":2},{"name":"NAME","targets":3},{"name":"variable","targets":4},{"name":"estimate","targets":5},{"name":"moe","targets":6},{"name":"summary_est","targets":7},{"name":"summary_moe","targets":8}],"order":[],"autoWidth":false,"orderClasses":false},"selection":{"mode":"multiple","selected":null,"target":"row","selectable":null}},"evals":[],"jsHooks":[]}</script>
+</div>
+</div>
+<div class="task">
+<p>From <code>college_by_year_estimate_long_gt</code> group by “NAME” and “year” and compute the percentage of the population age 25 and up with a 4-year college degree.</p>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb31"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a>percent_college_by_year_dt <span class="ot">&lt;-</span> college_by_year_estimate_long_dt <span class="sc">%&gt;%</span> </span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a>  .[, .(<span class="at">numerator=</span><span class="fu">sum</span>(.SD<span class="sc">$</span>estimate),<span class="at">denominator=</span>.SD<span class="sc">$</span>summary_est[[<span class="dv">1</span>]]), by <span class="ot">=</span> .(NAME,year)] <span class="sc">%&gt;%</span> </span>
+<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a>  .[, pct_college <span class="sc">:</span><span class="er">=</span> <span class="dv">100</span> <span class="sc">*</span> (numerator <span class="sc">/</span> denominator)] <span class="sc">%&gt;%</span> </span>
+<span id="cb31-4"><a href="#cb31-4" aria-hidden="true" tabindex="-1"></a>  data.table<span class="sc">::</span><span class="fu">dcast</span>(</span>
+<span id="cb31-5"><a href="#cb31-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">formula =</span> NAME <span class="sc">~</span> year,</span>
+<span id="cb31-6"><a href="#cb31-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">value.var =</span> <span class="st">"pct_college"</span></span>
+<span id="cb31-7"><a href="#cb31-7" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="cell-output-display">
+<div class="datatables html-widget html-fill-item" id="htmlwidget-b74fee3c8d75759c25f3" style="width:100%;height:auto;"></div>
+<script type="application/json" data-for="htmlwidget-b74fee3c8d75759c25f3">{"x":{"filter":"none","vertical":false,"caption":"<caption>Table 3.19: Percent college by year in Colorado counties<\/caption>","data":[["1","2","3","4","5","6","7","8","9","10","11","12"],["Adams County, Colorado","Arapahoe County, Colorado","Boulder County, Colorado","Broomfield County, Colorado","Denver County, Colorado","Douglas County, Colorado","El Paso County, Colorado","Jefferson County, Colorado","Larimer County, Colorado","Mesa County, Colorado","Pueblo County, Colorado","Weld County, Colorado"],[20.57393719027439,37.03000610750801,57.5028449801905,null,40.87970834859426,54.96800415081287,34.11467295584752,40.83113243141271,45.80196903147036,24.99285130718954,19.5433642444512,25.07193084317141],[20.51800832767369,38.24506010688544,59.05601438691872,null,42.97121669121349,53.27936210031863,35.69183600961025,39.54961294862773,42.83542841508459,25.82723842473168,23.50261326476425,24.65436206003333],[20.64537864158597,39.28435410524085,57.88283585510066,null,44.65358402685023,55.09222507588139,34.91315002959405,41.43824867918606,44.71422901369319,23.01510574018127,19.85871271585557,26.29705948894175],[23.09383915804311,39.42477832366228,58.53213668209121,null,44.35340236523954,57.6699926841164,35.47612439209818,41.04233688031015,43.33800293843443,27.63324809214103,21.34296321544712,27.40581933183694],[22.16929374429194,40.94193707373289,58.04066178935536,null,44.25599774262988,56.48865891832644,36.49301685912788,41.99767599987822,42.6717953851067,25.14875446263388,23.56389864989828,25.71741286725725],[22.79741642943375,41.03577847528761,60.57147015305504,56.07775973664894,47.108196423146,56.06927854753941,36.43088679820448,43.20923189389588,46.16704779169869,30.27630276302763,21.60260468481505,25.93728168904758],[22.95293278042738,41.48358749030757,60.63004838855201,51.94338499526003,47.39683046697948,59.42686583766297,38.67863666922455,43.51953026647404,46.78871399941453,25.02979974570884,21.17520186805939,27.21991921768708],[22.87551860820211,43.69387217571545,63.18150334773575,55.13358778625954,49.32691701597907,58.53341985723556,39.19931359627785,45.57139794426337,47.90465171734657,25.8245484846136,22.15222218306136,27.51222203491134],[25.74151614958022,42.71284498317648,62.5139362425577,56.27739892839747,51.34580111975272,58.37539452890731,38.8387249674132,45.8378635579611,47.6233045092747,29.95739070620606,21.75405363132375,27.36542343436138],[25.39956252170326,43.7833169078809,64.80486438327226,56.87180832811901,53.10087966479625,58.13746945713375,39.04942150969738,47.61074039811601,49.01653728761614,29.78537094310094,23.41851552698964,29.8827327541186]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>NAME<\/th>\n      <th>2010<\/th>\n      <th>2011<\/th>\n      <th>2012<\/th>\n      <th>2013<\/th>\n      <th>2014<\/th>\n      <th>2015<\/th>\n      <th>2016<\/th>\n      <th>2017<\/th>\n      <th>2018<\/th>\n      <th>2019<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"dom":"t","style":"bootstrap","columnDefs":[{"className":"dt-right","targets":[2,3,4,5,6,7,8,9,10,11]},{"orderable":false,"targets":0},{"name":" ","targets":0},{"name":"NAME","targets":1},{"name":"2010","targets":2},{"name":"2011","targets":3},{"name":"2012","targets":4},{"name":"2013","targets":5},{"name":"2014","targets":6},{"name":"2015","targets":7},{"name":"2016","targets":8},{"name":"2017","targets":9},{"name":"2018","targets":10},{"name":"2019","targets":11}],"order":[],"autoWidth":false,"orderClasses":false},"selection":{"mode":"multiple","selected":null,"target":"row","selectable":null}},"evals":[],"jsHooks":[]}</script>
+</div>
+</div>
+</section>
+</section>
+</section>
+<section id="handling-margins-of-error-in-the-american-community-survey" class="level2">
+<h2 class="anchored" data-anchor-id="handling-margins-of-error-in-the-american-community-survey">3.5 Handling margins of error in the American Community Survey</h2>
+<p>This section skipped.</p>
+
+
+</section>
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const disableStylesheet = (stylesheets) => {
+    for (let i=0; i < stylesheets.length; i++) {
+      const stylesheet = stylesheets[i];
+      stylesheet.rel = 'prefetch';
+    }
+  }
+  const enableStylesheet = (stylesheets) => {
+    for (let i=0; i < stylesheets.length; i++) {
+      const stylesheet = stylesheets[i];
+      stylesheet.rel = 'stylesheet';
+    }
+  }
+  const manageTransitions = (selector, allowTransitions) => {
+    const els = window.document.querySelectorAll(selector);
+    for (let i=0; i < els.length; i++) {
+      const el = els[i];
+      if (allowTransitions) {
+        el.classList.remove('notransition');
+      } else {
+        el.classList.add('notransition');
+      }
+    }
+  }
+  const toggleGiscusIfUsed = (isAlternate, darkModeDefault) => {
+    const baseTheme = document.querySelector('#giscus-base-theme')?.value ?? 'light';
+    const alternateTheme = document.querySelector('#giscus-alt-theme')?.value ?? 'dark';
+    let newTheme = '';
+    if(darkModeDefault) {
+      newTheme = isAlternate ? baseTheme : alternateTheme;
+    } else {
+      newTheme = isAlternate ? alternateTheme : baseTheme;
+    }
+    const changeGiscusTheme = () => {
+      // From: https://github.com/giscus/giscus/issues/336
+      const sendMessage = (message) => {
+        const iframe = document.querySelector('iframe.giscus-frame');
+        if (!iframe) return;
+        iframe.contentWindow.postMessage({ giscus: message }, 'https://giscus.app');
+      }
+      sendMessage({
+        setConfig: {
+          theme: newTheme
+        }
+      });
+    }
+    const isGiscussLoaded = window.document.querySelector('iframe.giscus-frame') !== null;
+    if (isGiscussLoaded) {
+      changeGiscusTheme();
+    }
+  }
+  const toggleColorMode = (alternate) => {
+    // Switch the stylesheets
+    const alternateStylesheets = window.document.querySelectorAll('link.quarto-color-scheme.quarto-color-alternate');
+    manageTransitions('#quarto-margin-sidebar .nav-link', false);
+    if (alternate) {
+      enableStylesheet(alternateStylesheets);
+      for (const sheetNode of alternateStylesheets) {
+        if (sheetNode.id === "quarto-bootstrap") {
+          toggleBodyColorMode(sheetNode);
+        }
+      }
+    } else {
+      disableStylesheet(alternateStylesheets);
+      toggleBodyColorPrimary();
+    }
+    manageTransitions('#quarto-margin-sidebar .nav-link', true);
+    // Switch the toggles
+    const toggles = window.document.querySelectorAll('.quarto-color-scheme-toggle');
+    for (let i=0; i < toggles.length; i++) {
+      const toggle = toggles[i];
+      if (toggle) {
+        if (alternate) {
+          toggle.classList.add("alternate");     
+        } else {
+          toggle.classList.remove("alternate");
+        }
+      }
+    }
+    // Hack to workaround the fact that safari doesn't
+    // properly recolor the scrollbar when toggling (#1455)
+    if (navigator.userAgent.indexOf('Safari') > 0 && navigator.userAgent.indexOf('Chrome') == -1) {
+      manageTransitions("body", false);
+      window.scrollTo(0, 1);
+      setTimeout(() => {
+        window.scrollTo(0, 0);
+        manageTransitions("body", true);
+      }, 40);  
+    }
+  }
+  const isFileUrl = () => { 
+    return window.location.protocol === 'file:';
+  }
+  const hasAlternateSentinel = () => {  
+    let styleSentinel = getColorSchemeSentinel();
+    if (styleSentinel !== null) {
+      return styleSentinel === "alternate";
+    } else {
+      return false;
+    }
+  }
+  const setStyleSentinel = (alternate) => {
+    const value = alternate ? "alternate" : "default";
+    if (!isFileUrl()) {
+      window.localStorage.setItem("quarto-color-scheme", value);
+    } else {
+      localAlternateSentinel = value;
+    }
+  }
+  const getColorSchemeSentinel = () => {
+    if (!isFileUrl()) {
+      const storageValue = window.localStorage.getItem("quarto-color-scheme");
+      return storageValue != null ? storageValue : localAlternateSentinel;
+    } else {
+      return localAlternateSentinel;
+    }
+  }
+  const darkModeDefault = false;
+  let localAlternateSentinel = darkModeDefault ? 'alternate' : 'default';
+  // Dark / light mode switch
+  window.quartoToggleColorScheme = () => {
+    // Read the current dark / light value 
+    let toAlternate = !hasAlternateSentinel();
+    toggleColorMode(toAlternate);
+    setStyleSentinel(toAlternate);
+    toggleGiscusIfUsed(toAlternate, darkModeDefault);
+  };
+  // Ensure there is a toggle, if there isn't float one in the top right
+  if (window.document.querySelector('.quarto-color-scheme-toggle') === null) {
+    const a = window.document.createElement('a');
+    a.classList.add('top-right');
+    a.classList.add('quarto-color-scheme-toggle');
+    a.href = "";
+    a.onclick = function() { try { window.quartoToggleColorScheme(); } catch {} return false; };
+    const i = window.document.createElement("i");
+    i.classList.add('bi');
+    a.appendChild(i);
+    window.document.body.appendChild(a);
+  }
+  // Switch to dark mode if need be
+  if (hasAlternateSentinel()) {
+    toggleColorMode(true);
+  } else {
+    toggleColorMode(false);
+  }
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    text: function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+      var filterRegex = new RegExp('/' + window.location.host + '/');
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+        // undo the damage that might have been done by quarto-nav.js in the case of
+        // links that we want to consider external
+        if (link.dataset.originalHref !== undefined) {
+          link.href = link.dataset.originalHref;
+        }
+      }
+    }
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+    const config = {
+      allowHTML: true,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start',
+    };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      if (note) {
+        return note.innerHTML;
+      } else {
+        return "";
+      }
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      // TODO in 1.5, we should make sure this works without a callout special case
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            div.style.left = 0;
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="./2_intro_to_tidyverse.html" class="pagination-link" aria-label="2 An introduction to tidyverse">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">2 An introduction to tidyverse</span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="./4_exploring_census_visualization.html" class="pagination-link" aria-label="4 Exploring US Census data with visualization">
+        <span class="nav-page-text">4 Exploring US Census data with visualization</span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+
+
+
+
+</body></html>
